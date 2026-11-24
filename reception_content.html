@@ -1,0 +1,80 @@
+<div class="reception-heading">
+  <div>
+    <p class="eyebrow">{{ labels.reception_eyebrow }}</p>
+    <h1>{{ labels.reception_title }}</h1>
+    <p>{{ labels.reception_subtitle }}</p>
+  </div>
+  <div class="reception-heading-actions">
+    <span class="update-time"><span class="live-dot"></span>{{ labels.updated_at }} {{ last_updated|time:"g:i A" }}</span>
+    <button class="button button-primary" type="button" id="open-walkin">{{ labels.add_walkin }} <span aria-hidden="true">+</span></button>
+  </div>
+</div>
+
+{% if notice %}<div class="reception-notice" role="status">{{ notice }}</div>{% endif %}
+{% if action_error %}<div class="reception-alert" role="alert">{{ action_error }}</div>{% endif %}
+
+<section class="reception-barbers" aria-labelledby="barber-work-title">
+  <div class="reception-section-heading"><div><p class="eyebrow">{{ labels.live_label }}</p><h2 id="barber-work-title">{{ labels.barber_workload }}</h2></div><span class="section-count">{{ barber_cards|length }} {{ labels.barbers_count }}</span></div>
+  <div class="reception-barber-grid">
+    {% for item in barber_cards %}
+    <article class="reception-barber-card">
+      <header class="reception-card-heading">
+        <div class="barber-avatar" aria-hidden="true">{{ item.barber.name|first|upper }}</div>
+        <div class="reception-barber-name"><h3>{{ item.barber.name }}</h3><span class="barber-state state-{{ item.barber.availability }}">{{ item.availability_label }}</span></div>
+        <a class="barber-screen-link" href="{% url 'barber' name=item.barber.name %}" aria-label="{{ labels.open_barber_view }} {{ item.barber.name }}">&#8599;</a>
+        {% if item.current %}<span class="work-state-label"><i></i>{{ labels.in_chair_label }}</span>{% elif item.called %}<span class="called-state-label"><i></i>{{ labels.called_label }}</span>{% endif %}
+      </header>
+      {% if item.current %}
+      <div class="current-customer">
+        <span class="detail-label">{{ labels.current_customer }}</span>
+        <div class="current-person"><strong>{{ item.current.customer_name }}</strong><span>{{ item.current.token }}</span></div>
+        <div class="reception-service-tags">{% for service in item.current.services.all %}<span>{{ service.name }}</span>{% endfor %}</div>
+        <div class="time-remaining"><span>{{ labels.time_left }}</span><strong>~{{ item.current_remaining }} {{ labels.minutes }}</strong><small>{{ labels.elapsed }} {{ item.current_elapsed }} {{ labels.minutes }}</small></div>
+      </div>
+      {% elif item.called %}
+      <div class="pending-customer"><span class="detail-label">{{ labels.waiting_to_arrive }}</span><div class="current-person"><strong>{{ item.called.customer_name }}</strong><span>{{ item.called.token }}</span></div><div class="reception-service-tags">{% for service in item.called.services.all %}<span>{{ service.name }}</span>{% endfor %}</div></div>
+      {% else %}
+      <div class="empty-chair"><span class="chair-mark" aria-hidden="true"><i></i></span><span>{{ labels.no_current_customer }}</span></div>
+      {% endif %}
+      {% if item.next_customer %}
+      <div class="next-customer"><span class="detail-label">{{ labels.next_eligible }}</span><strong>{{ item.next_customer.token }} · {{ item.next_customer.customer_name }}</strong><small>{% for service in item.next_customer.services.all %}{{ service.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small></div>
+      {% else %}<div class="next-customer next-empty"><span class="detail-label">{{ labels.next_eligible }}</span><small>{{ labels.no_eligible_customer }}</small></div>{% endif %}
+      <form method="post" class="call-next-form">
+        {% csrf_token %}<input type="hidden" name="action" value="call-next"><input type="hidden" name="barber_id" value="{{ item.barber.pk }}">
+        <button class="button button-call" type="submit" {% if not item.can_call or not item.next_customer %}disabled{% endif %}>{{ labels.call_next }} <span aria-hidden="true">&#8594;</span></button>
+      </form>
+    </article>
+    {% empty %}<p class="empty-line">{{ labels.no_barbers }}</p>{% endfor %}
+  </div>
+</section>
+
+<section class="waiting-section" aria-labelledby="waiting-title">
+  <div class="reception-section-heading"><div><p class="eyebrow">{{ labels.queue_order }}</p><h2 id="waiting-title">{{ labels.waiting_list }}</h2></div><span class="section-count">{{ waiting_entries|length }} {{ labels.customers_label }}</span></div>
+  <div class="waiting-table-wrap">
+    <table class="waiting-table">
+      <thead><tr><th>{{ labels.token_column }}</th><th>{{ labels.customer_label }}</th><th>{{ labels.service_label }}</th><th>{{ labels.preferred_barber }}</th><th>{{ labels.waiting_time }}</th><th>{{ labels.estimated_wait }}</th><th>{{ labels.status_label }}</th><th>{{ labels.actions_label }}</th></tr></thead>
+      <tbody>
+        {% for entry in waiting_entries %}
+        <tr class="{% if entry.waited_over_hour %}wait-warning{% endif %} {% if entry.status == 'called' %}queue-row-called{% endif %}">
+          <td data-label="{{ labels.token_column }}"><strong class="table-token">{{ entry.token }}</strong></td>
+          <td data-label="{{ labels.customer_label }}"><span class="table-customer">{{ entry.customer_name }}</span></td>
+          <td data-label="{{ labels.service_label }}"><div class="table-services">{% for service in entry.services.all %}<span>{{ service.name }}</span>{% endfor %}</div></td>
+          <td data-label="{{ labels.preferred_barber }}">{% if entry.barber %}{{ entry.barber.name }}{% else %}<span class="any-label">{{ labels.any_barber }}</span>{% endif %}</td>
+          <td data-label="{{ labels.waiting_time }}"><span class="waited-time">{{ entry.waited_minutes }} {{ labels.minutes }}</span></td>
+          <td data-label="{{ labels.estimated_wait }}">{% if entry.status == 'waiting' %}~{{ entry.estimated_wait }} {{ labels.minutes }}{% else %}<span class="called-inline">{{ labels.called_label }}</span>{% endif %}</td>
+          <td data-label="{{ labels.status_label }}">{% if entry.status == 'called' %}<span class="table-status called-status"><i></i>{{ labels.called_label }}</span>{% else %}<span class="table-status waiting-status"><i></i>{{ labels.waiting_label }}</span>{% endif %}</td>
+          <td data-label="{{ labels.actions_label }}"><div class="row-actions">
+            {% if entry.status == 'waiting' %}
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="cancel"><input type="hidden" name="entry_id" value="{{ entry.pk }}"><button class="action-link cancel-action" type="submit">{{ labels.cancel_action }}</button></form>
+            {% elif entry.status == 'called' %}
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="no-show"><input type="hidden" name="entry_id" value="{{ entry.pk }}"><button class="action-link no-show-action" type="submit" {% if not entry.no_show_ready %}disabled title="{{ labels.no_show_after_ten }}"{% endif %}>{{ labels.no_show_action }}</button></form>
+            {% endif %}
+          </div></td>
+        </tr>
+        {% empty %}<tr><td colspan="8" class="empty-table">{{ labels.queue_empty }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="wait-key"><span></span>{{ labels.over_hour_key }}</p>
+</section>
+

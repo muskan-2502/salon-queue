@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="barber-view" id="barber-view" data-refresh-url="{% url 'barber-fragment' name=barber.name %}">
+  {% include 'barber_content.html' %}
+</section>
+{% endblock %}

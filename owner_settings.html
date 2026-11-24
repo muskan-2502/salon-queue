@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="owner-settings-page">
+  <header class="owner-settings-heading">
+    <div><p class="eyebrow">{{ labels.settings_eyebrow }}</p><h1>{{ labels.settings_title }}</h1><p>{{ labels.settings_subtitle }}</p></div>
+    <time class="settings-date" datetime="{{ today_date|date:'Y-m-d' }}">{{ labels.settings_stats_date }} · {{ today_date|date:'M j' }}</time>
+  </header>
+
+  {% if notice %}<div class="settings-notice" role="status">{{ notice }}</div>{% endif %}
+  {% if action_error %}<div class="settings-alert" role="alert">{{ action_error }}</div>{% endif %}
+
+  <section class="settings-stats" aria-labelledby="settings-stats-title">
+    <div class="settings-section-heading"><div><p class="eyebrow">{{ labels.live_label }}</p><h2 id="settings-stats-title">{{ labels.settings_stats_title }}</h2></div></div>
+    <div class="settings-stats-grid">
+      <article class="settings-stat"><span class="settings-stat-label">{{ labels.settings_served }}</span><strong><span data-count-up>{{ served_count }}</span></strong><small>{{ labels.settings_stats_date }}</small></article>
+      <article class="settings-stat"><span class="settings-stat-label">{{ labels.settings_average_wait }}</span><strong><span data-count-up>{{ average_wait }}</span><small> {{ labels.settings_minutes_unit }}</small></strong><small>{{ labels.settings_stats_date }}</small></article>
+      <article class="settings-stat"><span class="settings-stat-label">{{ labels.settings_no_shows }}</span><strong><span data-count-up>{{ no_show_count }}</span></strong><small>{{ labels.settings_stats_date }}</small></article>
+    </div>
+  </section>
+
+  <section class="queue-control {% if queue_settings.online_joining_open %}queue-is-open{% else %}queue-is-closed{% endif %}" aria-labelledby="queue-control-title">
+    <div class="queue-control-copy">
+      <p class="eyebrow">{{ labels.settings_queue_title }}</p>
+      <h2 id="queue-control-title">{% if queue_settings.online_joining_open %}{{ labels.settings_queue_open }}{% else %}{{ labels.settings_queue_closed }}{% endif %}</h2>
+      <p>{{ labels.settings_queue_hint }}</p>
+    </div>
+    <div class="queue-control-action">
+      <span class="queue-state-label"><i></i>{% if queue_settings.online_joining_open %}{{ labels.settings_queue_open }}{% else %}{{ labels.settings_queue_closed }}{% endif %}</span>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle-queue"><button class="queue-toggle" type="submit" role="switch" aria-checked="{{ queue_settings.online_joining_open|yesno:'true,false' }}" aria-label="{% if queue_settings.online_joining_open %}{{ labels.settings_close_queue }}{% else %}{{ labels.settings_open_queue }}{% endif %}"><span>{% if queue_settings.online_joining_open %}{{ labels.settings_close_queue }}{% else %}{{ labels.settings_open_queue }}{% endif %}</span><i aria-hidden="true"><b></b></i></button></form>
+    </div>
+  </section>
+
+  <div class="settings-groups">
+    <section class="settings-group" aria-labelledby="services-settings-title">
+      <header class="settings-group-heading"><div><p class="eyebrow">{{ labels.settings_services_eyebrow }}</p><h2 id="services-settings-title">{{ labels.settings_services_title }}</h2><p>{{ labels.settings_services_hint }}</p></div><span class="settings-count">{{ services|length }}</span></header>
+      <div class="settings-list">
+        {% for service in services %}
+        <article class="settings-list-row">
+          <div class="settings-item-copy"><strong>{{ service.name }}</strong><span>{{ service.duration_minutes }} {{ labels.minutes }} <span aria-hidden="true">·</span> &#8377;{{ service.price_rupees }}</span></div>
+          <span class="settings-item-status {% if service.is_active %}item-status-active{% else %}item-status-inactive{% endif %}">{% if service.is_active %}{{ labels.settings_status_active }}{% else %}{{ labels.settings_status_inactive }}{% endif %}</span>
+          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle-service"><input type="hidden" name="service_id" value="{{ service.pk }}"><button class="settings-switch" type="submit" role="switch" aria-checked="{{ service.is_active|yesno:'true,false' }}" aria-label="{% if service.is_active %}{{ labels.settings_turn_off }}{% else %}{{ labels.settings_turn_on }}{% endif %} {{ service.name }}"><span class="switch-track" aria-hidden="true"><span></span></span></button></form>
+        </article>
+        {% empty %}<p class="settings-empty">{{ labels.settings_no_services }}</p>{% endfor %}
+      </div>
+    </section>
+
+    <section class="settings-group" aria-labelledby="barbers-settings-title">
+      <header class="settings-group-heading"><div><p class="eyebrow">{{ labels.settings_barbers_eyebrow }}</p><h2 id="barbers-settings-title">{{ labels.settings_barbers_title }}</h2><p>{{ labels.settings_barbers_hint }}</p></div><span class="settings-count">{{ barber_cards|length }}</span></header>
+      <div class="settings-list">
+        {% for item in barber_cards %}
+        <article class="settings-list-row">
+          <div class="settings-item-copy"><strong>{{ item.barber.name }}</strong><span>{{ item.availability_label }}{% if item.has_active_customer %} · {{ labels.settings_active_customer }}{% endif %}</span></div>
+          <span class="settings-item-status {% if item.barber.is_on_duty %}item-status-active{% else %}item-status-inactive{% endif %}">{% if item.barber.is_on_duty %}{{ labels.settings_on_duty }}{% else %}{{ labels.settings_off_duty }}{% endif %}</span>
+          <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle-barber-duty"><input type="hidden" name="barber_id" value="{{ item.barber.pk }}"><button class="settings-switch" type="submit" role="switch" aria-checked="{{ item.barber.is_on_duty|yesno:'true,false' }}" aria-label="{% if item.barber.is_on_duty %}{{ labels.settings_put_off_duty }}{% else %}{{ labels.settings_put_on_duty }}{% endif %} {{ item.barber.name }}" {% if item.barber.is_on_duty and item.has_active_customer %}disabled title="{{ labels.settings_barbers_hint }}"{% endif %}><span class="switch-track" aria-hidden="true"><span></span></span></button></form>
+        </article>
+        {% empty %}<p class="settings-empty">{{ labels.settings_no_barbers }}</p>{% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

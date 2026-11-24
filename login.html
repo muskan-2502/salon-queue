@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="account-page">
+  <header class="page-intro">
+    <p class="eyebrow">{{ labels.login_eyebrow }}</p>
+    <h1>{{ labels.login_title }}</h1>
+    <p>{{ labels.login_intro }}</p>
+  </header>
+  {% if errors %}<div class="form-errors" role="alert">{% for error in errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+  <form class="account-form" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <label class="field"><span>{{ labels.phone_label }}</span><input type="tel" name="phone" inputmode="numeric" autocomplete="tel-national" pattern="[0-9]{10}" minlength="10" maxlength="10" value="{{ phone }}" required></label>
+    <label class="field"><span>{{ labels.password_label }}</span><input type="password" name="password" autocomplete="current-password" required></label>
+    <button class="button button-primary" type="submit">{{ labels.login_cta }} <span aria-hidden="true">&rarr;</span></button>
+  </form>
+  <p class="account-switch">{{ labels.need_account }} <a href="{% url 'account-register' %}">{{ labels.register_cta }}</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,53 @@
+<div class="barber-view-header">
+  <div class="barber-view-title">
+    <p class="eyebrow">{{ labels.barber_eyebrow }}</p>
+    <h1>{{ barber.name }}</h1>
+    <p class="barber-subtitle">{{ labels.barber_view_subtitle }}</p>
+    <span class="barber-availability state-{{ barber.availability }}"><span></span>{{ availability_label }}</span>
+  </div>
+  <div class="barber-view-actions">
+    {% if notice %}<span class="barber-notice" role="status">{{ notice }}</span>{% endif %}
+    {% if action_error %}<span class="barber-error" role="alert">{{ action_error }}</span>{% endif %}
+    <form method="post" class="availability-form">
+      {% csrf_token %}<input type="hidden" name="action" value="toggle-break">
+      <button class="button {% if on_break %}button-available{% else %}button-break{% endif %}" type="submit" {% if break_toggle_disabled %}disabled title="{{ labels.break_active_customer }}"{% endif %}>
+        {% if on_break %}{{ labels.mark_available }}{% else %}{{ labels.mark_break }}{% endif %}
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="barber-view-grid">
+  <section class="barber-current" aria-labelledby="barber-current-title">
+    <div class="panel-topline"><p class="eyebrow">{{ labels.barber_current_label }}</p>{% if current %}<span class="barber-status-label serving-chip"><i></i>{{ labels.in_chair_label }}</span>{% elif called %}<span class="barber-status-label called-chip"><i></i>{{ labels.called_label }}</span>{% endif %}</div>
+    <h2 id="barber-current-title">{% if current %}{{ labels.barber_serving_title }}{% elif called %}{{ labels.barber_called_title }}{% else %}{{ labels.barber_empty_title }}{% endif %}</h2>
+    {% if current %}
+    <div class="barber-customer-identity"><span class="barber-customer-token">{{ current.token }}</span><strong>{{ current.customer_name }}</strong></div>
+    <div class="barber-service-list">{% for service in current.services.all %}<span>{{ service.name }} <small>{{ service.duration_minutes }} {{ labels.minutes }}</small></span>{% endfor %}</div>
+    <div class="barber-live-timer"><span>{{ labels.elapsed_since_start }}</span><strong data-elapsed-timer data-elapsed-seconds="{{ current_elapsed_seconds }}">00:00</strong></div>
+    <form method="post" class="barber-primary-action">{% csrf_token %}<input type="hidden" name="action" value="done"><button class="button button-done" type="submit">{{ labels.done_cta }} <span aria-hidden="true">&#10003;</span></button></form>
+    {% elif called %}
+    <div class="barber-customer-identity"><span class="barber-customer-token">{{ called.token }}</span><strong>{{ called.customer_name }}</strong></div>
+    <div class="barber-service-list">{% for service in called.services.all %}<span>{{ service.name }} <small>{{ service.duration_minutes }} {{ labels.minutes }}</small></span>{% endfor %}</div>
+    <p class="barber-customer-note">{{ labels.called_customer_note }}</p>
+    <form method="post" class="barber-primary-action">{% csrf_token %}<input type="hidden" name="action" value="start"><button class="button button-start" type="submit">{{ labels.start_cta }} <span aria-hidden="true">&#9654;</span></button></form>
+    {% else %}
+    <div class="barber-empty-state"><span class="empty-chair-symbol" aria-hidden="true"><i></i></span><p>{% if on_break %}{{ labels.barber_break_empty }}{% else %}{{ labels.barber_empty_message }}{% endif %}</p></div>
+    {% endif %}
+    {% if current and called %}<div class="barber-pending-call"><span>{{ labels.next_called }}</span><strong>{{ called.token }} · {{ called.customer_name }}</strong><small>{{ labels.start_after_done }}</small></div>{% endif %}
+  </section>
+
+  <aside class="barber-next" aria-labelledby="barber-next-title">
+    <p class="eyebrow">{{ labels.barber_next_label }}</p>
+    <h2 id="barber-next-title">{{ labels.next_for_you }}</h2>
+    {% if next_customer %}
+    <div class="next-ticket">
+      <span class="next-ticket-token">{{ next_customer.token }}</span>
+      <strong>{{ next_customer.customer_name }}</strong>
+      <div class="barber-service-list">{% for service in next_customer.services.all %}<span>{{ service.name }}</span>{% endfor %}</div>
+      <small>{{ labels.estimated_wait }} ~{{ next_customer_wait }} {{ labels.minutes }}</small>
+    </div>
+    {% else %}<div class="next-ticket-empty">{{ labels.no_eligible_customer }}</div>{% endif %}
+    <a class="barber-reception-link" href="{% url 'reception' %}">{{ labels.open_reception }} <span aria-hidden="true">&#8594;</span></a>
+  </aside>
+</div>

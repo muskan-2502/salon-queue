@@ -1,0 +1,15 @@
+<dialog class="walkin-dialog" id="walkin-dialog" data-open-on-load="{% if walkin_dialog_open %}true{% else %}false{% endif %}" aria-labelledby="walkin-title">
+  <form method="post" class="walkin-form" id="walkin-form" novalidate data-max-services="3" data-limit-error="{{ labels.max_services_error }}" data-service-error="{{ labels.select_service_error }}" data-phone-error="{{ labels.phone_error }}" data-name-error="{{ labels.name_error }}">
+    {% csrf_token %}<input type="hidden" name="action" value="add-walkin">
+    <header class="walkin-heading"><div><p class="eyebrow">{{ labels.walkin_eyebrow }}</p><h2 id="walkin-title">{{ labels.walkin_title }}</h2></div><button class="dialog-close" type="button" id="close-walkin" aria-label="{{ labels.close_dialog }}">&#10005;</button></header>
+    <p class="walkin-intro">{{ labels.walkin_intro }}</p>
+    {% if walkin_errors %}<div class="form-errors" role="alert">{% for error in walkin_errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+    <label class="field"><span>{{ labels.name_label }}</span><input name="customer_name" type="text" maxlength="100" autocomplete="name" placeholder="{{ labels.name_placeholder }}" value="{{ walkin_values.customer_name }}" required></label>
+    <label class="field"><span>{{ labels.phone_label }}</span><input name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" pattern="[0-9]{10}" maxlength="10" placeholder="{{ labels.phone_placeholder }}" value="{{ walkin_values.phone }}" required></label>
+    <fieldset class="walkin-services"><legend>{{ labels.services_label }}</legend><small>{{ labels.services_hint }}</small>
+      <div class="walkin-service-list">{% for service in services %}<label><input type="checkbox" name="service_ids" value="{{ service.pk }}" {% if service.pk|stringformat:'s' in walkin_selected_ids %}checked{% endif %}><span>{{ service.name }}</span><small>{{ service.duration_minutes }} {{ labels.minutes }}</small></label>{% endfor %}</div>
+    </fieldset>
+    <p class="inline-error" id="walkin-service-error" aria-live="polite"></p>
+    <footer class="walkin-actions"><button class="button button-secondary" type="button" id="cancel-walkin">{{ labels.cancel_action }}</button><button class="button button-primary" type="submit">{{ labels.add_to_queue }} <span aria-hidden="true">&#8594;</span></button></footer>
+  </form>
+</dialog>

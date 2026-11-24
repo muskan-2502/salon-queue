@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="reception-root" id="reception-root">
+  <section class="reception-page" id="reception-dashboard" data-refresh-url="{% url 'reception-fragment' %}">
+    {% include 'reception_content.html' %}
+  </section>
+  {% include 'walkin_dialog.html' %}
+</div>
+{% endblock %}

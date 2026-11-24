@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<section class="home-hero">
+  <div class="hero-copy">
+    <p class="eyebrow">{{ labels.welcome_eyebrow }}</p>
+    <h1>{{ labels.home_title }}</h1>
+    <p class="hero-intro">{{ labels.home_intro }}</p>
+    <div class="home-meta-line">
+      <div class="open-badge {% if not queue_open %}is-closed{% endif %}" id="queue-open-badge" data-open-label="{{ labels.open_badge }}" data-closed-label="{{ labels.closed_badge }}"><span class="open-dot"></span><span id="queue-open-label">{% if queue_open %}{{ labels.open_badge }}{% else %}{{ labels.closed_badge }}{% endif %}</span></div>
+      <a class="button button-primary" id="home-join-cta" href="{% url 'join' %}" data-open-label="{{ labels.join_cta }}" data-closed-label="{{ labels.join_closed_cta }}"><span id="home-join-label">{% if queue_open %}{{ labels.join_cta }}{% else %}{{ labels.join_closed_cta }}{% endif %}</span> <span aria-hidden="true">&#8599;</span></a>
+    </div>
+  </div>
+  <div class="hero-art" aria-hidden="true"><img src="{% static 'images/tricky-heat-logo.png' %}" alt=""></div>
+</section>
+
+{% if personal_entry %}
+<section class="appointment-section" aria-labelledby="appointment-title">
+  <div class="appointment-card">
+    <div class="appointment-card-heading">
+      <p class="appointment-eyebrow">{{ labels.appointment_eyebrow }}</p>
+      <span class="appointment-status">
+        {% if personal_entry.status == 'waiting' %}{{ labels.waiting_label }}
+        {% elif personal_entry.status == 'called' %}{{ labels.called_label }}
+        {% else %}{{ labels.in_chair_label }}{% endif %}
+      </span>
+    </div>
+    <h2 id="appointment-title">{{ labels.appointment_title }}</h2>
+    <p class="appointment-token">{{ personal_entry.token }}</p>
+    <div class="appointment-details">
+      <div><span>{{ labels.appointment_barber }}</span><strong>{% if personal_entry.barber %}{{ personal_entry.barber.name }}{% else %}{{ labels.appointment_no_barber }}{% endif %}</strong></div>
+      <div><span>{{ labels.appointment_services }}</span><strong>{% for service in personal_entry.services.all %}{{ service.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong></div>
+    </div>
+    <a class="appointment-link" href="{% url 'status' personal_entry.pk %}">{{ labels.appointment_track }} <span aria-hidden="true">&rarr;</span></a>
+  </div>
+</section>
+{% endif %}
+
+<section class="live-section" aria-labelledby="live-title">
+  <div class="section-heading"><div><p class="eyebrow">{{ labels.live_label }}</p><h2 id="live-title">{{ labels.queue_now }}</h2></div><span class="live-label"><span class="live-dot"></span> {{ labels.live_indicator }}</span></div>
+  <div class="live-card" id="queue-summary" data-summary-url="{% url 'home-summary' %}" data-minute-label="{{ labels.minutes }}">
+    <div class="live-stat"><span class="stat-number" id="waiting-count">{{ waiting_count }}</span><span class="stat-copy">{{ labels.people_waiting }}</span></div>
+    <div class="stat-divider"></div>
+    <div class="live-stat"><span class="stat-number" id="overall-wait">{% if overall_wait %}~{{ overall_wait }}{% else %}&mdash;{% endif %}</span><span class="stat-copy">{{ labels.about_wait }}{% if overall_wait %} &middot; {{ labels.minutes }}{% endif %}</span></div>
+    <a class="text-link" href="{% url 'join' %}">{{ labels.save_spot }} <span aria-hidden="true">&rarr;</span></a>
+  </div>
+  {% if not waiting_count %}<p class="empty-line home-queue-empty">{{ labels.no_one_waiting }}</p>{% endif %}
+</section>
+
+<section class="barbers-section" aria-labelledby="barbers-title">
+  <div class="section-heading"><div><p class="eyebrow">{{ labels.barbers_eyebrow }}</p><h2 id="barbers-title">{{ labels.barbers_title }}</h2></div></div>
+  <div class="barber-grid">
+    {% for item in barber_cards %}
+    <article class="barber-card">
+      <div class="barber-avatar" aria-hidden="true">{{ item.barber.name|first|upper }}</div>
+      <div class="barber-info"><h3>{{ item.barber.name }}</h3><span class="barber-state state-{{ item.barber.availability }}">{{ item.availability_label }}</span></div>
+      <div class="barber-wait"><span>{{ labels.barber_wait }}</span><strong id="barber-wait-{{ item.barber.pk }}" data-barber-wait data-available="{% if item.barber.is_on_duty and item.barber.availability != 'break' %}true{% else %}false{% endif %}">{% if item.barber.is_on_duty and item.barber.availability != 'break' %}{{ item.wait_minutes }} {{ labels.minutes }}{% else %}&mdash;{% endif %}</strong></div>
+    </article>
+    {% empty %}
+    <p class="empty-line">{{ labels.no_barbers }}</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

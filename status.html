@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="status-confirmation{% if barber_on_break %} barber-is-on-break{% endif %}" id="status-page" data-status-url="{% url 'status-summary' entry.pk %}" data-minute-label="{{ labels.minutes }}" data-state="{{ entry.status }}" data-position="{{ position }}" data-barber="{{ called_barber }}">
+  {% if existing_spot %}<div class="existing-spot-note" role="status">{{ labels.existing_spot }}</div>{% endif %}
+  <p class="eyebrow">{{ labels.status_eyebrow }}</p>
+  <h1 id="status-title">
+    {% if entry.status == 'called' %}{{ labels.called_title }}
+    {% elif entry.status == 'in_chair' %}{{ labels.in_chair_title }}
+    {% elif entry.status == 'done' %}{{ labels.done_title }}
+    {% elif entry.status == 'cancelled' %}{{ labels.cancelled_title }}
+    {% elif entry.status == 'no_show' %}{{ labels.no_show_title }}
+    {% else %}{{ labels.status_title }}{% endif %}
+  </h1>
+  <p class="status-name">{{ labels.success_name }} <strong>{{ entry.customer_name }}</strong></p>
+  <div class="queue-state-message" id="status-message" aria-live="polite">
+    {% if entry.status == 'called' %}{% if called_barber %}{{ labels.called_go_to }} {{ called_barber }}{% else %}{{ labels.called_any_message }}{% endif %}
+    {% elif entry.status == 'in_chair' %}{{ labels.in_chair_message }}
+    {% elif entry.status == 'done' %}{{ labels.done_message }}
+    {% elif entry.status == 'cancelled' %}{{ labels.cancelled_message }}
+    {% elif entry.status == 'no_show' %}{{ labels.no_show_message }}
+    {% elif barber_on_break %}{{ called_barber }} {{ labels.barber_on_break_suffix }}
+    {% elif barber_off_duty %}{{ called_barber }} {{ labels.barber_off_duty_suffix }}
+    {% else %}{{ labels.status_waiting_message }}{% endif %}
+  </div>
+  <div class="start-coming-banner" id="start-coming-banner" role="status" {% if position != 2 or entry.status != 'waiting' %}hidden{% endif %}>
+    <strong>{{ labels.start_coming_title }}</strong>
+    <span>{{ labels.start_coming_message }}</span>
+  </div>
+  <div class="status-metrics">
+    <div><span class="status-label">{{ labels.token_label }}</span><strong class="status-token" id="status-token">{{ entry.token }}</strong></div>
+    <div><span class="status-label">{{ labels.position_label }}</span><strong class="status-position"><span id="status-position">{% if entry.status == 'waiting' %}{{ position }}{% else %}&mdash;{% endif %}</span><small> {{ labels.position_suffix }}</small></strong></div>
+    <div class="status-wait-block"><span class="status-label">{{ labels.wait_label }}</span><strong id="status-wait">{% if entry.status == 'waiting' %}~{{ wait_minutes }} {{ labels.minutes }}{% else %}&mdash;{% endif %}</strong></div>
+  </div>
+  <p class="status-services">{% for service in entry.services.all %}<span>{{ service.name }}</span>{% endfor %}</p>
+  <a class="button button-secondary" href="{% url 'home' %}">{{ labels.back_home }}</a>
+</section>
+{{ labels|json_script:"status-labels" }}
+{% endblock %}

@@ -1,0 +1,59 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111014">
+  <title>{{ labels.brand }}{% if screen_id != 'home' %} · {{ page_title }}{% endif %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+  <script defer src="{% static 'js/app.js' %}"></script>
+</head>
+<body data-screen="{{ screen_id }}">
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="{% url 'home' %}" aria-label="{{ labels.brand }} {{ labels.nav_home }}">
+        <img src="{% static 'images/tricky-heat-logo.png' %}" alt="{{ labels.brand }}" class="brand-logo">
+      </a>
+      <nav class="main-nav desktop-nav" aria-label="{{ labels.main_navigation }}">
+        <a href="{% url 'home' %}" {% if screen_id == 'home' %}aria-current="page"{% endif %}>{{ labels.nav_home }}</a>
+        <a href="{% url 'join' %}" class="nav-join" {% if screen_id == 'join' %}aria-current="page"{% endif %}>{{ labels.nav_join }}</a>
+        <a href="{% url 'reception' %}" {% if screen_id == 'reception' %}aria-current="page"{% endif %}>{{ labels.nav_reception }}</a>
+        <a href="{% url 'display' %}" {% if screen_id == 'display' %}aria-current="page"{% endif %}>{{ labels.nav_display }}</a>
+        <a href="{% url 'owner-settings' %}" {% if screen_id == 'settings' %}aria-current="page"{% endif %}>{{ labels.page_settings }}</a>
+        {% if request.user.is_authenticated %}
+        <form class="nav-auth-form" method="post" action="{% url 'account-logout' %}">{% csrf_token %}<button class="nav-auth-button" type="submit">{{ labels.nav_logout }}</button></form>
+        {% else %}
+        <a href="{% url 'account-login' %}" {% if screen_id == 'login' %}aria-current="page"{% endif %}>{{ labels.nav_login }}</a>
+        <a href="{% url 'account-register' %}" {% if screen_id == 'register' %}aria-current="page"{% endif %}>{{ labels.nav_register }}</a>
+        {% endif %}
+      </nav>
+      <button class="menu-toggle" id="mobile-menu-toggle" type="button" aria-haspopup="dialog" aria-controls="mobile-menu" aria-expanded="false"><span>{{ labels.menu }}</span><span class="menu-glyph" aria-hidden="true"><i></i><i></i></span></button>
+    </header>
+    <main class="main-content">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer"><span>{{ labels.brand }}</span><span>{{ labels.footer_note }}</span></footer>
+  </div>
+  <dialog class="mobile-menu" id="mobile-menu" aria-label="{{ labels.main_navigation }}">
+    <div class="mobile-menu-head"><span>{{ labels.brand }}</span><button class="menu-close" id="mobile-menu-close" type="button">{{ labels.close_menu }}</button></div>
+    <nav class="mobile-menu-links" aria-label="{{ labels.main_navigation }}">
+      <a href="{% url 'home' %}"><span>01</span>{{ labels.nav_home }}</a>
+      <a href="{% url 'join' %}"><span>02</span>{{ labels.nav_join }}</a>
+      <a href="{% url 'reception' %}"><span>03</span>{{ labels.nav_reception }}</a>
+      <a href="{% url 'display' %}"><span>04</span>{{ labels.nav_display }}</a>
+      <a href="{% url 'owner-settings' %}"><span>05</span>{{ labels.page_settings }}</a>
+      {% if request.user.is_authenticated %}
+      <form class="mobile-auth-form" method="post" action="{% url 'account-logout' %}">{% csrf_token %}<button class="mobile-auth-button" type="submit">{{ labels.nav_logout }}</button></form>
+      {% else %}
+      <a href="{% url 'account-login' %}"><span>06</span>{{ labels.nav_login }}</a>
+      <a href="{% url 'account-register' %}"><span>07</span>{{ labels.nav_register }}</a>
+      {% endif %}
+    </nav>
+  </dialog>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

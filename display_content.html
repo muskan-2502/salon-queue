@@ -1,0 +1,29 @@
+<div class="tv-content">
+  <header class="tv-header">
+    <div class="tv-title-group"><p class="eyebrow">{{ labels.tv_eyebrow }}</p><h1>{{ labels.tv_title }}</h1><span>{{ labels.tv_subtitle }}</span></div>
+    <div class="tv-header-actions"><div class="tv-live"><span class="live-dot"></span>{{ labels.live_indicator }}</div><div class="tv-queue-total"><strong>{{ waiting_count }}</strong><span>{{ labels.people_waiting }}</span></div><button type="button" class="sound-toggle" id="sound-toggle" aria-pressed="false">{{ labels.sound_off }}</button></div>
+  </header>
+  <div class="tv-lanes" aria-live="polite">
+    {% for lane in barber_lanes %}
+    <article class="tv-lane {% if lane.on_break %}lane-on-break{% endif %}" data-barber-id="{{ lane.barber.pk }}" data-called-token="{% if lane.called %}{{ lane.called.token }}{% endif %}">
+      <div class="tv-barber-column">
+        <div class="tv-barber-profile"><span class="tv-barber-avatar" aria-hidden="true">{{ lane.barber.name|first|upper }}</span><div><h2>{{ lane.barber.name }}</h2><span class="tv-barber-state">{{ lane.availability_label }}</span></div></div>
+        <div class="tv-current-label">{{ labels.tv_now }}</div>
+        {% if lane.current %}<strong class="tv-current-token">{{ lane.current.token }}</strong><span class="tv-current-name">{{ lane.current.customer_name }}</span>{% else %}<strong class="tv-no-current">{{ labels.tv_no_customer }}</strong>{% endif %}
+        {% if lane.current %}<div class="tv-current-services">{% for service in lane.current.services.all %}{{ service.name }}{% if not forloop.last %} · {% endif %}{% endfor %}</div><small class="tv-remaining">{{ labels.time_left }} ~{{ lane.current_remaining }} {{ labels.minutes }}</small>{% endif %}
+      </div>
+      <div class="tv-called-column">
+        <span class="tv-section-label">{{ labels.tv_called }}</span>
+        {% if lane.called %}<div class="tv-called-ticket"><strong>{{ lane.called.token }}</strong><span>{{ lane.called.customer_name }}</span></div>{% else %}<span class="tv-no-called">{{ labels.tv_none_called }}</span>{% endif %}
+      </div>
+      <div class="tv-up-next-column">
+        <div class="tv-up-next-heading"><span class="tv-section-label">{{ labels.tv_up_next }}</span><span>{{ labels.tv_next_five }}</span></div>
+        {% if lane.next_entries %}<ol class="tv-up-next-list">
+          {% for entry in lane.next_entries %}<li><span class="tv-next-number">{{ forloop.counter|stringformat:"02d" }}</span><strong>{{ entry.token }}</strong><span class="tv-next-name">{{ entry.customer_name }}</span><span class="tv-next-services">{% for service in entry.services.all %}{{ service.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span><span class="tv-next-wait">{% if entry.estimated_wait != None %}~{{ entry.estimated_wait }} {{ labels.minutes }}{% else %}&mdash;{% endif %}</span></li>{% endfor %}
+        </ol>{% else %}<div class="tv-no-next">{{ labels.tv_no_next }}</div>{% endif %}
+      </div>
+    </article>
+    {% empty %}<div class="tv-no-next">{{ labels.no_barbers }}</div>{% endfor %}
+  </div>
+  <footer class="tv-footer"><span>{{ labels.brand }}</span><span>{{ labels.tv_refresh_note }}</span><span>{{ labels.tv_updated }} {{ last_updated|time:"g:i A" }}</span></footer>
+</div>

@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="tv-dashboard" id="tv-dashboard" data-refresh-url="{% url 'display-fragment' %}" data-sound-on="{{ labels.sound_on }}" data-sound-off="{{ labels.sound_off }}">
+  {% include 'display_content.html' %}
+</section>
+{% endblock %}
