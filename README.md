@@ -1,5 +1,21 @@
 # Salon Queue Management System
 
+**Live demo:** [https://salon-queue-ocuh.onrender.com](https://salon-queue-ocuh.onrender.com)
+
+Django serves the customer, reception, barber and waiting-area screens.
+
+## Deployment
+
+This project is deployed on Render.
+
+- **Framework:** Django
+- **Application server:** Gunicorn
+- **Static files:** WhiteNoise
+- **Database:** SQLite
+- **Hosting:** Render (Free tier)
+
+**Note:** The free-tier demo uses SQLite. Data may reset when Render replaces or recreates the instance.
+
 ## 1. Project Overview
 
 The **Salon Queue Management System** is a web-based application developed using Django and Python. It is designed to support the management of customer queues in a salon.
